@@ -1,1 +1,8 @@
-7.26
+#查看对应表的所有规则 -t指要操作的表（默认为filter表）-L表示列出规则（查看）-n表示不解析ip地址 
+#-v表示varbose表示详细的，冗长的（显示详细信息） -x用来显示计数器的精确值（正常情况下超过一定数值会加单位K）
+iptables -t 表名 -nvxL
+#查看表的所有规则，并显示规则的序号，此选项为长选项，不能与其他短选项合并，但是可以简写--line 同样不可于短选项合并
+iptables --line-numbers -t 表名 -L
+例：iptables --line -t filter -nvxl INPUT
+查看filter表中的INPUT规则 （显示序号，不解析ip，显示计算器精确数值）
+
