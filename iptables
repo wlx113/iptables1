@@ -1,4 +1,4 @@
------①
+-----二-----
 #查看对应表的所有规则 -t指要操作的表（默认为filter表）-L表示列出规则（查看）-n表示不解析ip地址 
 #-v表示varbose表示详细的，冗长的（显示详细信息） -x用来显示计数器的精确值（正常情况下超过一定数值会加单位K）
 iptables -t 表名 -nvxL
@@ -6,7 +6,7 @@ iptables -t 表名 -nvxL
 iptables --line-numbers -t 表名 -L
 例：iptables --line -t filter -nvxl INPUT
 查看filter表中的INPUT规则 （显示序号，不解析ip，显示计算器精确数值）
------②
+-----三-----
 #在链的尾部添加一条规则，-A是在对应链的末尾进行添加
 iptables -t 表名 -A 链名 匹配条件 -j 动作
 例：iptables -t filter -A INPUT -s 192.168.43.134 -j DROP
@@ -42,4 +42,39 @@ service iptables save
 或 iptables-save > /etc/sysconfig/iptables
 #重载规则，文件中的规则将会覆盖现有规则
 iptables-restore < /etc/sysconfig/iptables
-
+-----四-----
+#-s用于匹配报文的源地址，-d用于匹配报文的目标地址，都可以同时指定多个源地址（目标地址），每个ip之间用逗号隔开
+也可以指定为一个网段，！表示取反，以第三个例子为例，表示为除了源地址为192.168.43.1的ip地址，其他都允许访问
+但是不代表192.168.43.1这个网址不能使用，因为没有这个地址可以匹配的规则，所有就用filter表下INPUT链的默认策略ACCEPT
+例：
+-s:
+iptables -I INPUT -s 192.168.43.1,192.168.43.2 -j DROP
+iptables -t filter -I INPUT -s 192.168.1.0/24 -j ACCEPT
+iptables -I INPUT ! -s 192.168.43.1 -j ACCEPT ---------------第三个规则
+-d:
+iptables -t filter -I OUTPUT -d 192.168.1.111,192.168.1.118 -j DROP
+iptables -t filter -I INPUT -d 192.168.1.0/24 -j ACCEPT
+iptables -t filter -I INPUT ! -d 192.168.1.0/24 -j ACCEPT
+#-p用于匹配报文的协议类型，centos6中可以匹配tcp、udp、udplite、icmp、esp、ah、sctp（centos7中还支持icmpv6、mh）
+iptables -t filter -I INPUT -p tcp -s 192.168.1.146 -j ACCEPT
+iptables -t filter -I INPUT ! -p udp -s 192.168.1.146 -j ACCEPT
+#-i用于匹配报文是从哪个网卡接口流入本机的，由于匹配条件只是用于匹配报文流入的网卡地址，不能在OUTPUT,POSTROUTING使用
+iptables -t filter -I INPUT -p icmp -i eth4 -j DROP
+iptables -t filter -I INPUT -p icmp ! -i eth4 -j DROP
+#-o用于匹配报文是从哪个网卡接口流出本机的，由于匹配条件只是用于匹配报文流出的网卡地址，不能在INPUT,PREROUTING使用
+iptables -t filter -I OUTPUT -p icmp -o eth4 -j DROP
+iptables -t filter -I OUTPUT -p icmp ! -o eth4 -j DROP
+#tco扩展模块 -p tco -m tcp -sport（dport）sport用于匹配tcp协议报文的源端口，dport用于匹配tcp协议报文的目标端口，
+都可以使用冒号指定一个连续的端口范围（当匹配报文协议类型的名称和扩展模块类型名称相同是，
+可以省略-m 例如 -p tcp -m tcp ）
+iptables -t filter -I OUTPUT -d 192.168.1.146 -p tcp -m tcp --sport 22 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m tcp --dport 22:25 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m tcp --dport :22 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m tcp --dport 80: -j REJECT
+iptables -t filter -I OUTPUT -d 192.168.1.146 -p tcp -m tcp ! --sport 22 -j ACCEPT
+#multiport扩展模块 -p tcp -m multiport -sports（dports）和sport（dport）区别在于可以指定离散的多个端口号，逗号分隔
+iptables -t filter -I OUTPUT -d 192.168.1.146 -p udp -m multiport --sports 137,138 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport ! --dports 22,80 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 80:88 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80:88 -j REJECT
