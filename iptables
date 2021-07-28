@@ -117,4 +117,14 @@ iptables -t filter -I INPUT -p tcp -m tcp --dport 22 --tcp-flags ALL SYN -j REJE
 iptables -t filter -I OUTPUT -p tcp -m tcp --sport 22 --tcp-flags ALL SYN,ACK -j REJECT
 #--syn 用于匹配tcp新建连接的请求报文，相当于使用“-tcp flags SYN,RST,ACK,FIN SYN”
 iptables -t filter -I INPUT -p tcp -m tcp --dport 22 --syn -j REJECT
-
+-----七-----
+#udp扩展模块 -sport：匹配udp报文的源地址 -dport：匹配udp报文的目标地址
+iptables -t filter -I INPUT -p udp -m udp --dport 137 -j ACCEPT
+iptables -t filter -I INPUT -p udp -m udp --dport 137:157 -j ACCEPT
+#icmp扩展模块 -icmp-type：匹配icmp报文的具体类型
+iptables -t filter -I INPUT -p icmp -m icmp --icmp-type 8/0 -j REJECT
+iptables -t filter -I INPUT -p icmp --icmp-type 8 -j REJECT
+iptables -t filter -I OUTPUT -p icmp -m icmp --icmp-type 0/0 -j REJECT
+iptables -t filter -I OUTPUT -p icmp --icmp-type 0 -j REJECT
+iptables -t filter -I INPUT -p icmp --icmp-type "echo-request" -j REJECT
+-----八-----
