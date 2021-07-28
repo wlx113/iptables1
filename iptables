@@ -109,4 +109,12 @@ iptables -I INPUT -p tcp --dport 22 -m connlimit --connlimit-above 10 --connlimi
 --limit：类比“令牌桶”算法，用于指定令牌桶中生存新令牌的频率，可用时间单位（second，minute，hour，day）
 iptables -t filter -I INPUT -p icmp -m limit --limit-burst 3 --limit 10/minute -j ACCEPT
 iptables -t filter -A INPUT -p icmp -j REJECT
+-----六-----
+#-tcp-flags 用于匹配报文的tcp头的标志位
+iptables -t filter -I INPUT -p tcp -m tcp --dport 22 --tcp-flags SYN,ACK,FIN,RST,URG,PSH SYN -j REJECT
+iptables -t filter -I OUTPUT -p tcp -m tcp --sport 22 --tcp-flags SYN,ACK,FIN,RST,URG,PSH SYN,ACK -j REJECT
+iptables -t filter -I INPUT -p tcp -m tcp --dport 22 --tcp-flags ALL SYN -j REJECT
+iptables -t filter -I OUTPUT -p tcp -m tcp --sport 22 --tcp-flags ALL SYN,ACK -j REJECT
+#--syn 用于匹配tcp新建连接的请求报文，相当于使用“-tcp flags SYN,RST,ACK,FIN SYN”
+iptables -t filter -I INPUT -p tcp -m tcp --dport 22 --syn -j REJECT
 
