@@ -128,3 +128,7 @@ iptables -t filter -I OUTPUT -p icmp -m icmp --icmp-type 0/0 -j REJECT
 iptables -t filter -I OUTPUT -p icmp --icmp-type 0 -j REJECT
 iptables -t filter -I INPUT -p icmp --icmp-type "echo-request" -j REJECT
 -----八-----
+#state扩展模块 放行ESTABLISHED与RELATED状态的包
+iptables -I INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-----九-----
+
