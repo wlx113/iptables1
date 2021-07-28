@@ -78,3 +78,35 @@ iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80 
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport ! --dports 22,80 -j REJECT
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 80:88 -j REJECT
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80:88 -j REJECT
+-----五-----
+#iprange扩展模块 -src-range（指定连续的源地址范围）-dst-range（指定连续的目标地址范围）
+iptables -t filter -I INPUT -m iprange --src-range 192.168.1.127-192.168.1.146 -j DROP
+iptables -t filter -I OUTPUT -m iprange --dst-range 192.168.1.127-192.168.1.146 -j DROP
+iptables -t filter -I INPUT -m iprange ! --src-range 192.168.1.127-192.168.1.146 -j DROP
+#string扩展模块 
+-timestart：指定时间范围的开始时间，不可取反
+-timestop：指定时间范围的结束时间，不可取反
+-weekdays：用于指定“星期几”，可取反
+-monthdays：用于指定“几号”，可取反
+-datestart：指定时期范围的开始日期，不可取反
+-datestop：指定时间范围的结束时间，不可取反
+iptables -t filter -I OUTPUT -p tcp --dport 80 -m time --timestart 09:00:00 --timestop 19:00:00 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 443 -m time --timestart 09:00:00 --timestop 19:00:00 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time --weekdays 6,7 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time --monthdays 22,23 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time ! --monthdays 22,23 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time --timestart 09:00:00 --timestop 18:00:00 --weekdays 6,7 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time --weekdays 5 --monthdays 22,23,24,25,26,27,28 -j REJECT
+iptables -t filter -I OUTPUT -p tcp --dport 80  -m time --datestart 2017-12-24 --datestop 2017-12-27 -j REJECT
+#connlimit模块
+-connlimit-above：单独使用时，表示限制每个IP的链接数量
+-connlimit-mask：不可单独使用，需要于above配合，表示可以针对“某类IP段内的一定数量的IP”进行连接数量的限制
+iptables -I INPUT -p tcp --dport 22 -m connlimit --connlimit-above 2 -j REJECT
+iptables -I INPUT -p tcp --dport 22 -m connlimit --connlimit-above 20 --connlimit-mask 24 -j REJECT
+iptables -I INPUT -p tcp --dport 22 -m connlimit --connlimit-above 10 --connlimit-mask 27 -j REJECT
+#limit模块
+--limit-burst：类比“令牌桶算法”，用于指定令牌桶中令牌的最大数量
+--limit：类比“令牌桶”算法，用于指定令牌桶中生存新令牌的频率，可用时间单位（second，minute，hour，day）
+iptables -t filter -I INPUT -p icmp -m limit --limit-burst 3 --limit 10/minute -j ACCEPT
+iptables -t filter -A INPUT -p icmp -j REJECT
+
