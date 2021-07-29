@@ -191,7 +191,8 @@ iptables -t nat -A POSTROUTING -s 10.1.0.0/16 -j SNAT --to-source 公网IP
 iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
 配置完成上述规则后，其他机器访问本机的80端口时，会被映射到8080端口
 -----十四-----
-
+总结
+朱双印 https://www.zsythink.net/archives/1869
 
 
 
