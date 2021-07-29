@@ -144,7 +144,30 @@ iptables -E IN_WEB WEB
 #删除自定义链（需要满足两个条件1.自定义链没有被引用2.自定义链中没有任何规则）
 iptables -X WEB
 -----十一-----
-
+#如果想要iptables作为网络防火墙，iptables所在主机开启核心转发功能，以便能够转发报文。
+#使用如下命令查看当前主机是否已经开启了核心转发，0表示为开启，1表示已开启
+cat /proc/sys/net/ipv4/ip_forward
+#使用如下两种方法均可临时开启核心转发，立即生效，但是重启网络配置后会失效。
+方法一：echo 1 > /proc/sys/net/ipv4/ip_forward
+方法二：sysctl -w net.ipv4.ip_forward=1
+#使用如下方法开启核心转发功能，重启网络服务后永久生效。
+配置/etc/sysctl.conf文件（centos7中配置/usr/lib/sysctl.d/00-system.conf文件），在配置文件中将 net.ipv4.ip_forward设置为1
+ 
+#由于iptables此时的角色为"网络防火墙"，所以需要在filter表中的FORWARD链中设置规则。
+#可以使用"白名单机制"，先添加一条默认拒绝的规则，然后再为需要放行的报文设置规则。
+#配置规则时需要考虑"方向问题"，针对请求报文与回应报文，考虑报文的源地址与目标地址，源端口与目标端口等。
+#示例为允许网络内主机访问网络外主机的web服务与sshd服务。
+iptables -A FORWARD -j REJECT
+iptables -I FORWARD -s 10.1.0.0/16 -p tcp --dport 80 -j ACCEPT
+iptables -I FORWARD -d 10.1.0.0/16 -p tcp --sport 80 -j ACCEPT
+iptables -I FORWARD -s 10.1.0.0/16 -p tcp --dport 22 -j ACCEPT
+iptables -I FORWARD -d 10.1.0.0/16 -p tcp --sport 22 -j ACCEPT
+ 
+#可以使用state扩展模块，对上述规则进行优化，使用如下配置可以省略许多"回应报文放行规则"。
+iptables -A FORWARD -j REJECT
+iptables -I FORWARD -s 10.1.0.0/16 -p tcp --dport 80 -j ACCEPT
+iptables -I FORWARD -s 10.1.0.0/16 -p tcp --dport 22 -j ACCEPT
+iptables -I FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 
 
