@@ -131,4 +131,20 @@ iptables -t filter -I INPUT -p icmp --icmp-type "echo-request" -j REJECT
 #state扩展模块 放行ESTABLISHED与RELATED状态的包
 iptables -I INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 -----九-----
+#黑名单白名单机制
+黑名单机制：把所有人当做好人，只拒绝坏人
+白名单机制：把所有人当做坏人，只放行好人
+-----十-----
+#创建自定义链
+iptables -t filter -N IN_WEB
+#引用自定义链
+iptables -t filter -I INPUT -p tcp --dport 80 -j IN_WEB
+#重命名自定义链
+iptables -E IN_WEB WEB
+#删除自定义链（需要满足两个条件1.自定义链没有被引用2.自定义链中没有任何规则）
+iptables -X WEB
+-----十一-----
+
+
+
 
