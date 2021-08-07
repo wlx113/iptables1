@@ -64,7 +64,7 @@ iptables -t filter -I INPUT -p icmp ! -i eth4 -j DROP
 #-o用于匹配报文是从哪个网卡接口流出本机的，由于匹配条件只是用于匹配报文流出的网卡地址，不能在INPUT,PREROUTING使用
 iptables -t filter -I OUTPUT -p icmp -o eth4 -j DROP
 iptables -t filter -I OUTPUT -p icmp ! -o eth4 -j DROP
-#tco扩展模块 -p tco -m tcp -sport（dport）sport用于匹配tcp协议报文的源端口，dport用于匹配tcp协议报文的目标端口，
+#tcp扩展模块 -p tcp -m tcp -sport（dport）sport用于匹配tcp协议报文的源端口，dport用于匹配tcp协议报文的目标端口，
 都可以使用冒号指定一个连续的端口范围（当匹配报文协议类型的名称和扩展模块类型名称相同是，
 可以省略-m 例如 -p tcp -m tcp ）
 iptables -t filter -I OUTPUT -d 192.168.1.146 -p tcp -m tcp --sport 22 -j REJECT
@@ -77,12 +77,12 @@ iptables -t filter -I OUTPUT -d 192.168.1.146 -p udp -m multiport --sports 137,1
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80 -j REJECT
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport ! --dports 22,80 -j REJECT
 iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 80:88 -j REJECT
-iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80:88 -j REJECT
+iptables -t filter -I INPUT -s 192.168.1.146 -p tcp -m multiport --dports 22,80:88 -j REJECT ！！！报错
 -----五-----
 #iprange扩展模块 -src-range（指定连续的源地址范围）-dst-range（指定连续的目标地址范围）
 iptables -t filter -I INPUT -m iprange --src-range 192.168.1.127-192.168.1.146 -j DROP
 iptables -t filter -I OUTPUT -m iprange --dst-range 192.168.1.127-192.168.1.146 -j DROP
-iptables -t filter -I INPUT -m iprange ! --src-range 192.168.1.127-192.168.1.146 -j DROP
+iptables -t filter -I INPUT -m iprange ! --src-range 192.168.1.127-192.168.1.146 -j DROP ！！！报错
 #string扩展模块 
 -timestart：指定时间范围的开始时间，不可取反
 -timestop：指定时间范围的结束时间，不可取反
